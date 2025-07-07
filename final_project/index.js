@@ -20,7 +20,7 @@ app.use("/customer/auth/*", function auth(req,res,next){
                 req.user = user;
                 next();
             } else {
-                return res.status(403).json({message: "Customer not authenticated"})
+                return res.status(401).json({message: "Customer not authenticated"})
             }
         });
     } else {
