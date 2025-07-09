@@ -43,15 +43,16 @@ regd_users.post("/login", (req,res) => {
     if (authenticatedUser(username, password)) {
         // Generate JWT access token
         let accessToken = jwt.sign({
-            username
-        }, 'access', { expiresIn: 60 });
+            data: password
+        }, 'access', { expiresIn: 60 * 60 });
 
         // if user is registered log user in
         // Store access token and username in session
-        return res.status(200).json({
-            message: "Login successful",
-            token: accessToken
-        });
+        req.session.authorization = {
+            username,
+            accessToken,
+        };
+        return res.status(200).send("User successfully logged in");
     } else {
         return res.status(208).json({ message: "Invalid Login. Check username and password" });
     } 
@@ -63,19 +64,21 @@ regd_users.post("/login", (req,res) => {
 regd_users.put("/auth/review/:isbn", (req, res) => {
     const review = req.body.review;
     const isbn = req.params.isbn;
-    const username = req.session.username;
+    const username = req.user.username;
 
-    if (!username) {
-        return res.status(401).json({ message: "User not logged in." });
-    }
     
     if (!review) {
-    return res.status(400).json({ message: "Review content is required." });
+        return res.status(400).json({ message: "Review content is required." });
     }
     
     const book = books[isbn];
     if (!book) {
     return res.status(404).json({ message: "Book not found." });
+    }
+
+    // Ensure the reviews object exists
+    if (!book.reviews) {
+        book.reviews = {};
     }
 
     const isUpdate = book.reviews.hasOwnProperty(username);
@@ -85,7 +88,9 @@ regd_users.put("/auth/review/:isbn", (req, res) => {
 
     return res.status(isUpdate ? 200 : 201).json({
         message: isUpdate ? "Review updated successfully." : "Review added successfully.",
-        reviews: book.reviews
+        isbn,
+        user: username,
+        review: book.reviews[username]
     });
 });
 
@@ -93,7 +98,7 @@ regd_users.put("/auth/review/:isbn", (req, res) => {
 // DELETE review by logged-in user
 regd_users.delete("/auth/review/:isbn", (req, res) => {
     const isbn = req.params.isbn;
-    const username = req.session.username;
+    const username = req.user.username;
   
     if (!username) {
       return res.status(401).json({ message: "You must be logged in to delete a review." });
