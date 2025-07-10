@@ -43,7 +43,7 @@ regd_users.post("/login", (req,res) => {
     if (authenticatedUser(username, password)) {
         // Generate JWT access token
         let accessToken = jwt.sign({
-            data: password
+            data: {username, password}
         }, 'access', { expiresIn: 60 * 60 });
 
         // if user is registered log user in
@@ -66,6 +66,9 @@ regd_users.put("/auth/review/:isbn", (req, res) => {
     const isbn = req.params.isbn;
     const username = req.user.username;
 
+    if (!username) {
+        return res.status(401).json({ message: "You must be logged in to delete a review." });
+    }
     
     if (!review) {
         return res.status(400).json({ message: "Review content is required." });
@@ -99,6 +102,7 @@ regd_users.put("/auth/review/:isbn", (req, res) => {
 regd_users.delete("/auth/review/:isbn", (req, res) => {
     const isbn = req.params.isbn;
     const username = req.user.username;
+    console.log(req.user)
   
     if (!username) {
       return res.status(401).json({ message: "You must be logged in to delete a review." });

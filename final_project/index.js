@@ -17,7 +17,7 @@ app.use("/customer/auth/*", function auth(req,res,next){
         // Verify JWT token
         jwt.verify(token, "access", (err, user) => {
             if(!err) {
-                req.user = user;
+                req.user = user.data;
                 next();
             } else {
                 return res.status(401).json({message: "Customer not authenticated"})
