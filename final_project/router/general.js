@@ -62,39 +62,60 @@ public_users.get('/isbn/:isbn',function (req, res) {
 });
   
 // Get book details based on author
-public_users.get('/author/:author',function (req, res) {
+public_users.get('/author/:author', function (req, res) {
     const author = req.params.author.toLowerCase();
-    const booksByAuthor = [];
-
-    for(let isbn in books) {
-        if(books[isbn].author.toLowerCase() === author) {
-            booksByAuthor.push({isbn, ...books[isbn]})
+  
+    new Promise((resolve, reject) => {
+      const booksByAuthor = [];
+  
+      for (let isbn in books) {
+        if (books[isbn].author.toLowerCase() === author) {
+          booksByAuthor.push({ isbn, ...books[isbn] });
         }
-    }
-
-    if (booksByAuthor.length === 0) {
-        return res.status(404).json({message: "No books found by this author"})
-    }
-    return res.send(booksByAuthor);
+      }
+  
+      if (booksByAuthor.length > 0) {
+        resolve(booksByAuthor);
+      } else {
+        reject(new Error("No books found by this author"));
+      }
+    })
+      .then((booksByAuthor) => {
+        res.status(200).json(booksByAuthor);
+      })
+      .catch((error) => {
+        res.status(404).json({ message: error.message });
+      });
 });
-
+  
 // Get all books based on title
-public_users.get('/title/:title',function (req, res) {
-  const title = req.params.title.toLowerCase();
-  const booksByTitle = [];
-
-  for (let isbn in books) {
-    if (books[isbn].title.toLowerCase() === title) {
-        booksByTitle.push({isbn, ...books[isbn]})
-    }
-  }
-
-  if (booksByTitle.length === 0) {
-    return res.status(404).json({message: "No books found by this title"})
-  }
-
-  return res.send(booksByTitle);
+public_users.get('/title/:title', function (req, res) {
+    const title = req.params.title.toLowerCase();
+    console.log(title)
+  
+    new Promise((resolve, reject) => {
+      const booksByTitle = [];
+  
+      for (let isbn in books) {
+        if (books[isbn].title.toLowerCase() === title) {
+          booksByTitle.push({ isbn, ...books[isbn] });
+        }
+      }
+  
+      if (booksByTitle.length > 0) {
+        resolve(booksByTitle);
+      } else {
+        reject(new Error("No books found by this title"));
+      }
+    })
+      .then((booksByTitle) => {
+        res.status(200).json(booksByTitle);
+      })
+      .catch((error) => {
+        res.status(404).json({ message: error.message });
+      });
 });
+  
 
 //  Get book review
 public_users.get('/review/:isbn',function (req, res) {
